@@ -86,6 +86,7 @@ body::after {
 .game-header {
     text-align: center;
     margin-bottom: 24px;
+    position: relative;
 }
 
 .game-header h1 {
@@ -96,6 +97,34 @@ body::after {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: -0.5px;
+}
+
+.sound-toggle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    padding: 0;
+}
+
+.sound-toggle:hover {
+    border-color: #6366f1;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.sound-toggle:active {
+    transform: scale(0.95);
 }
 
 .hidden {
@@ -118,8 +147,8 @@ body::after {
 
 .mode-buttons {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
 }
 
 .mode-btn {
@@ -315,6 +344,86 @@ body::after {
         transform: scale(1);
         color: #f59e0b;
     }
+}
+
+.duo-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.duo-player {
+    flex: 1;
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 16px 12px;
+    text-align: center;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.duo-player.active {
+    transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+}
+
+.duo-player.player1.active {
+    border-color: #6366f1;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+}
+
+.duo-player.player2.active {
+    border-color: #ec4899;
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(244, 114, 182, 0.1) 100%);
+}
+
+.duo-player-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 6px;
+}
+
+.duo-player.player1 .duo-player-name {
+    color: #6366f1;
+}
+
+.duo-player.player2 .duo-player-name {
+    color: #ec4899;
+}
+
+.duo-player-score {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.duo-player.player1 .duo-player-score {
+    color: #6366f1;
+}
+
+.duo-player.player2 .duo-player-score {
+    color: #ec4899;
+}
+
+.duo-player-score.pulse {
+    animation: valuePulse 0.3s ease;
+}
+
+.duo-player-pairs {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.duo-vs {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #cbd5e1;
+    flex-shrink: 0;
 }
 
 .combo-bonus {
@@ -931,11 +1040,45 @@ body::after {
         grid-template-columns: 1fr;
     }
 
+    .mode-btn {
+        padding: 16px 12px;
+    }
+
+    .mode-icon {
+        font-size: 2rem;
+    }
+
+    .mode-name {
+        font-size: 1rem;
+    }
+
+    .mode-desc {
+        font-size: 0.75rem;
+    }
+
     .difficulty-buttons {
         grid-template-columns: 1fr 1fr;
     }
 
     .card-front {
         font-size: 1.6rem;
+    }
+
+    .sound-toggle {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+
+    .duo-player-score {
+        font-size: 1.5rem;
+    }
+
+    .duo-player-name {
+        font-size: 0.8rem;
+    }
+
+    .duo-vs {
+        font-size: 1rem;
     }
 }

@@ -4,12 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>记忆卡片游戏</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎴</text></svg>">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <main class="game-container">
         <header class="game-header">
             <h1>记忆卡片游戏</h1>
+            <button id="sound-toggle" class="sound-toggle" aria-label="音效开关">
+                <span id="sound-icon">🔊</span>
+            </button>
         </header>
 
         <div id="start-screen" class="start-screen">
@@ -25,6 +31,11 @@
                         <span class="mode-icon">🏆</span>
                         <span class="mode-name">关卡模式</span>
                         <span class="mode-desc">逐关递增，突破极限</span>
+                    </button>
+                    <button class="mode-btn" data-mode="duo">
+                        <span class="mode-icon">👥</span>
+                        <span class="mode-name">双人对战</span>
+                        <span class="mode-desc">本地对战，谁与争锋</span>
                     </button>
                 </div>
             </div>
@@ -58,7 +69,7 @@
         </div>
 
         <div id="game-screen" class="game-screen hidden">
-            <section class="game-info" aria-label="游戏信息">
+            <section class="game-info" aria-label="游戏信息" id="single-player-info">
                 <div class="info-item">
                     <span class="info-label">倒计时</span>
                     <span id="timer" class="info-value">60</span>
@@ -80,6 +91,20 @@
                 <div class="info-item level-item hidden" id="level-item">
                     <span class="info-label">关卡</span>
                     <span id="level" class="info-value">1</span>
+                </div>
+            </section>
+
+            <section class="duo-info hidden" aria-label="双人对战信息" id="duo-player-info">
+                <div class="duo-player player1 active" id="player1-panel">
+                    <div class="duo-player-name">玩家 1</div>
+                    <div class="duo-player-score" id="player1-score">0</div>
+                    <div class="duo-player-pairs">配对: <span id="player1-pairs">0</span></div>
+                </div>
+                <div class="duo-vs">VS</div>
+                <div class="duo-player player2" id="player2-panel">
+                    <div class="duo-player-name">玩家 2</div>
+                    <div class="duo-player-score" id="player2-score">0</div>
+                    <div class="duo-player-pairs">配对: <span id="player2-pairs">0</span></div>
                 </div>
             </section>
 

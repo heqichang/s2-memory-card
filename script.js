@@ -18,6 +18,11 @@ const LEVEL_CONFIG = [
     { level: 10, pairs: 16, time: 30 }
 ];
 
+const DUO_CONFIG = {
+    pairs: 8,
+    baseScore: 100
+};
+
 const EMOJIS = [
     '🎮', '🎯', '🎪', '🎨', '🎭', '🎬', '🎵', '🎲',
     '🎸', '🎺', '🎻', '🎹', '🏀', '⚽', '🏈', '🎾',
@@ -31,6 +36,94 @@ const GAME_CONFIG = {
     baseMatchScore: 100,
     comboTimeBonus: 3,
     comboScoreMultiplier: 0.5
+};
+
+const SoundManager = {
+    audioContext: null,
+    enabled: true,
+
+    init() {
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.warn('Web Audio API not supported');
+        }
+        const saved = localStorage.getItem('memoryCardSoundEnabled');
+        if (saved !== null) {
+            this.enabled = saved === 'true';
+        }
+    },
+
+    resume() {
+        if (this.audioContext && this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
+    },
+
+    toggle() {
+        this.enabled = !this.enabled;
+        localStorage.setItem('memoryCardSoundEnabled', this.enabled);
+        return this.enabled;
+    },
+
+    playTone(frequency, duration, type = 'sine', volume = 0.3) {
+        if (!this.enabled || !this.audioContext) return;
+        
+        this.resume();
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        oscillator.frequency.value = frequency;
+        oscillator.type = type;
+        
+        gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+        
+        oscillator.start(this.audioContext.currentTime);
+        oscillator.stop(this.audioContext.currentTime + duration);
+    },
+
+    playFlip() {
+        this.playTone(600, 0.1, 'sine', 0.2);
+    },
+
+    playMatch() {
+        this.playTone(523, 0.1, 'sine', 0.3);
+        setTimeout(() => this.playTone(659, 0.1, 'sine', 0.3), 100);
+        setTimeout(() => this.playTone(784, 0.15, 'sine', 0.3), 200);
+    },
+
+    playMismatch() {
+        this.playTone(300, 0.15, 'sawtooth', 0.2);
+        setTimeout(() => this.playTone(200, 0.2, 'sawtooth', 0.2), 120);
+    },
+
+    playWin() {
+        const notes = [523, 659, 784, 1047];
+        notes.forEach((note, i) => {
+            setTimeout(() => this.playTone(note, 0.2, 'sine', 0.3), i * 150);
+        });
+    },
+
+    playLose() {
+        const notes = [400, 350, 300, 250];
+        notes.forEach((note, i) => {
+            setTimeout(() => this.playTone(note, 0.25, 'sawtooth', 0.2), i * 200);
+        });
+    },
+
+    playWarning() {
+        this.playTone(880, 0.1, 'square', 0.2);
+        setTimeout(() => this.playTone(880, 0.1, 'square', 0.2), 200);
+    },
+
+    playTurnChange() {
+        this.playTone(440, 0.1, 'sine', 0.25);
+        setTimeout(() => this.playTone(550, 0.15, 'sine', 0.25), 100);
+    }
 };
 
 const elements = {
@@ -73,7 +166,17 @@ const elements = {
     modeButtons: document.querySelectorAll('.mode-btn'),
     difficultyButtons: document.querySelectorAll('.difficulty-btn'),
     difficultySelector: document.getElementById('difficulty-selector'),
-    leaderboardTabs: document.querySelectorAll('.leaderboard-tab')
+    leaderboardTabs: document.querySelectorAll('.leaderboard-tab'),
+    soundToggle: document.getElementById('sound-toggle'),
+    soundIcon: document.getElementById('sound-icon'),
+    singlePlayerInfo: document.getElementById('single-player-info'),
+    duoPlayerInfo: document.getElementById('duo-player-info'),
+    player1Panel: document.getElementById('player1-panel'),
+    player2Panel: document.getElementById('player2-panel'),
+    player1Score: document.getElementById('player1-score'),
+    player2Score: document.getElementById('player2-score'),
+    player1Pairs: document.getElementById('player1-pairs'),
+    player2Pairs: document.getElementById('player2-pairs')
 };
 
 let gameState = {
@@ -92,7 +195,13 @@ let gameState = {
     scoreMultiplier: 1,
     pendingScore: 0,
     pendingTime: 0,
-    pendingLevel: 0
+    pendingLevel: 0,
+    currentPlayer: 1,
+    player1Score: 0,
+    player2Score: 0,
+    player1Pairs: 0,
+    player2Pairs: 0,
+    warningPlayed: false
 };
 
 function shuffleArray(array) {
@@ -201,6 +310,10 @@ function updateTimerDisplay(time) {
     elements.timer.textContent = time;
     if (time <= 10) {
         elements.timer.style.color = '#ef4444';
+        if (!gameState.warningPlayed && time === 10) {
+            SoundManager.playWarning();
+            gameState.warningPlayed = true;
+        }
     } else {
         elements.timer.style.color = '';
     }
@@ -211,6 +324,27 @@ function updateLevelDisplay(level) {
     elements.level.classList.remove('pulse');
     void elements.level.offsetWidth;
     elements.level.classList.add('pulse');
+}
+
+function updateDuoPlayerDisplay() {
+    elements.player1Score.textContent = gameState.player1Score;
+    elements.player2Score.textContent = gameState.player2Score;
+    elements.player1Pairs.textContent = gameState.player1Pairs;
+    elements.player2Pairs.textContent = gameState.player2Pairs;
+    
+    elements.player1Panel.classList.toggle('active', gameState.currentPlayer === 1);
+    elements.player2Panel.classList.toggle('active', gameState.currentPlayer === 2);
+    
+    const currentScore = gameState.currentPlayer === 1 ? elements.player1Score : elements.player2Score;
+    currentScore.classList.remove('pulse');
+    void currentScore.offsetWidth;
+    currentScore.classList.add('pulse');
+}
+
+function switchPlayer() {
+    gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+    updateDuoPlayerDisplay();
+    SoundManager.playTurnChange();
 }
 
 function startTimer() {
@@ -306,6 +440,7 @@ function handleCardClick(e) {
 
     card.classList.add('flipped');
     gameState.flippedCards.push(card);
+    SoundManager.playFlip();
 
     if (gameState.flippedCards.length === 2) {
         checkMatch();
@@ -326,21 +461,39 @@ function checkMatch() {
 }
 
 function handleMatchSuccess(card1, card2) {
-    gameState.combo++;
-    updateComboDisplay(gameState.combo);
+    SoundManager.playMatch();
 
-    let matchScore = GAME_CONFIG.baseMatchScore * gameState.scoreMultiplier;
-    if (gameState.combo >= 2) {
-        matchScore = matchScore * (1 + (gameState.combo - 1) * GAME_CONFIG.comboScoreMultiplier);
-    }
-    matchScore = Math.floor(matchScore);
-    gameState.score += matchScore;
-    updateScoreDisplay(gameState.score);
+    if (gameState.mode === 'duo') {
+        const score = DUO_CONFIG.baseScore;
+        if (gameState.currentPlayer === 1) {
+            gameState.player1Score += score;
+            gameState.player1Pairs++;
+        } else {
+            gameState.player2Score += score;
+            gameState.player2Pairs++;
+        }
+        gameState.matchedCount++;
+        updateDuoPlayerDisplay();
+    } else {
+        gameState.combo++;
+        updateComboDisplay(gameState.combo);
 
-    if (gameState.combo >= 2) {
-        const timeBonus = GAME_CONFIG.comboTimeBonus + (gameState.combo - 2);
-        addTimeBonus(timeBonus);
-        showComboBonus(gameState.combo, timeBonus);
+        let matchScore = GAME_CONFIG.baseMatchScore * gameState.scoreMultiplier;
+        if (gameState.combo >= 2) {
+            matchScore = matchScore * (1 + (gameState.combo - 1) * GAME_CONFIG.comboScoreMultiplier);
+        }
+        matchScore = Math.floor(matchScore);
+        gameState.score += matchScore;
+        updateScoreDisplay(gameState.score);
+
+        if (gameState.combo >= 2) {
+            const timeBonus = GAME_CONFIG.comboTimeBonus + (gameState.combo - 2);
+            addTimeBonus(timeBonus);
+            showComboBonus(gameState.combo, timeBonus);
+        }
+
+        gameState.matchedCount++;
+        updateMatchedCount(gameState.matchedCount);
     }
 
     setTimeout(() => {
@@ -348,8 +501,6 @@ function handleMatchSuccess(card1, card2) {
         card2.classList.add('matched');
     }, GAME_CONFIG.flipAnimationDuration / 2);
 
-    gameState.matchedCount++;
-    updateMatchedCount(gameState.matchedCount);
     gameState.flippedCards = [];
 
     if (gameState.matchedCount === gameState.totalPairs) {
@@ -359,17 +510,32 @@ function handleMatchSuccess(card1, card2) {
         return;
     }
 
-    gameState.isProcessing = false;
+    if (gameState.mode !== 'duo') {
+        gameState.isProcessing = false;
+    } else {
+        setTimeout(() => {
+            gameState.isProcessing = false;
+        }, 300);
+    }
 }
 
 function handleMatchFailure(card1, card2) {
-    gameState.combo = 0;
-    updateComboDisplay(0);
+    SoundManager.playMismatch();
+
+    if (gameState.mode !== 'duo') {
+        gameState.combo = 0;
+        updateComboDisplay(0);
+    }
 
     setTimeout(() => {
         card1.classList.remove('flipped');
         card2.classList.remove('flipped');
         gameState.flippedCards = [];
+        
+        if (gameState.mode === 'duo') {
+            switchPlayer();
+        }
+        
         gameState.isProcessing = false;
     }, GAME_CONFIG.mismatchResetDelay);
 }
@@ -392,6 +558,7 @@ function handleLevelComplete() {
 }
 
 function showLevelComplete(timeUsed, score) {
+    SoundManager.playWin();
     gameState.status = 'levelComplete';
     
     elements.levelCompleteMessage.textContent = `恭喜你完成了第 ${gameState.currentLevel} 关！`;
@@ -449,6 +616,7 @@ function nextLevel() {
     gameState.isProcessing = false;
     gameState.combo = 0;
     gameState.status = 'playing';
+    gameState.warningPlayed = false;
     
     updateMatchedCount(0);
     updateTimerDisplay(gameState.timeLeft);
@@ -459,6 +627,12 @@ function nextLevel() {
 
 function showResult(status) {
     let timeUsed;
+    
+    if (gameState.mode === 'duo') {
+        showDuoResult();
+        return;
+    }
+    
     if (gameState.mode === 'classic') {
         timeUsed = DIFFICULTY_CONFIG[gameState.difficulty].time - gameState.timeLeft;
     } else {
@@ -470,6 +644,7 @@ function showResult(status) {
     }
     
     if (status === 'won') {
+        SoundManager.playWin();
         elements.modalIcon.textContent = gameState.mode === 'level' ? '🏆' : '🎉';
         elements.modalTitle.textContent = gameState.mode === 'level' ? '恭喜通关！' : '恭喜你赢了！';
         elements.modalTitle.classList.add('success');
@@ -478,6 +653,7 @@ function showResult(status) {
             : `太棒了！你用了 ${timeUsed} 秒完成游戏！`;
         createConfetti(elements.confettiContainer);
     } else {
+        SoundManager.playLose();
         elements.modalIcon.textContent = '⏰';
         elements.modalTitle.textContent = '时间到！';
         elements.modalTitle.classList.remove('success');
@@ -514,7 +690,7 @@ function showResult(status) {
     elements.modalStats.innerHTML = statsHtml;
     elements.resultModal.classList.add('show');
     
-    if (status === 'won') {
+    if (status === 'won' && gameState.mode !== 'duo') {
         const isHighScore = checkIsHighScore(
             gameState.mode, 
             gameState.score, 
@@ -528,6 +704,52 @@ function showResult(status) {
             }, 800);
         }
     }
+}
+
+function showDuoResult() {
+    SoundManager.playWin();
+    let winner, message, icon;
+    
+    if (gameState.player1Score > gameState.player2Score) {
+        winner = 1;
+        icon = '🎉';
+        message = '玩家 1 获胜！';
+    } else if (gameState.player2Score > gameState.player1Score) {
+        winner = 2;
+        icon = '🎉';
+        message = '玩家 2 获胜！';
+    } else {
+        winner = 0;
+        icon = '🤝';
+        message = '平局！势均力敌！';
+    }
+    
+    elements.modalIcon.textContent = icon;
+    elements.modalTitle.textContent = message;
+    elements.modalTitle.classList.add('success');
+    elements.modalMessage.textContent = '精彩的对决！再来一局？';
+    
+    elements.modalStats.innerHTML = `
+        <div class="stat-row">
+            <span class="stat-label">玩家 1 得分</span>
+            <span class="stat-value">${gameState.player1Score} 分</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">玩家 1 配对</span>
+            <span class="stat-value">${gameState.player1Pairs} 对</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">玩家 2 得分</span>
+            <span class="stat-value">${gameState.player2Score} 分</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">玩家 2 配对</span>
+            <span class="stat-value">${gameState.player2Pairs} 对</span>
+        </div>
+    `;
+    
+    createConfetti(elements.confettiContainer);
+    elements.resultModal.classList.add('show');
 }
 
 function hideResult() {
@@ -620,33 +842,49 @@ function resetGameState() {
     gameState.combo = 0;
     gameState.score = 0;
     gameState.status = 'playing';
+    gameState.warningPlayed = false;
+    gameState.currentPlayer = 1;
+    gameState.player1Score = 0;
+    gameState.player2Score = 0;
+    gameState.player1Pairs = 0;
+    gameState.player2Pairs = 0;
     
     if (gameState.mode === 'classic') {
         const config = DIFFICULTY_CONFIG[gameState.difficulty];
         gameState.totalPairs = config.pairs;
         gameState.timeLeft = config.time;
         gameState.scoreMultiplier = config.scoreMultiplier;
-    } else {
+    } else if (gameState.mode === 'level') {
         const levelData = LEVEL_CONFIG[gameState.currentLevel - 1];
         gameState.totalPairs = levelData.pairs;
         gameState.timeLeft = levelData.time;
         gameState.scoreMultiplier = 1 + (gameState.currentLevel - 1) * 0.2;
+    } else if (gameState.mode === 'duo') {
+        gameState.totalPairs = DUO_CONFIG.pairs;
+        gameState.timeLeft = 0;
     }
 }
 
 function updateUI() {
-    updateMatchedCount(0);
-    updateTimerDisplay(gameState.timeLeft);
-    updateScoreDisplay(0);
-    updateComboDisplay(0);
+    const isDuo = gameState.mode === 'duo';
+    
+    elements.singlePlayerInfo.classList.toggle('hidden', isDuo);
+    elements.duoPlayerInfo.classList.toggle('hidden', !isDuo);
+    
+    if (isDuo) {
+        updateDuoPlayerDisplay();
+    } else {
+        updateMatchedCount(0);
+        updateTimerDisplay(gameState.timeLeft);
+        updateScoreDisplay(0);
+        updateComboDisplay(0);
+    }
     
     if (gameState.mode === 'level') {
         updateLevelDisplay(gameState.currentLevel);
         elements.levelItem.classList.remove('hidden');
-        elements.difficultySelector.classList.add('hidden');
     } else {
         elements.levelItem.classList.add('hidden');
-        elements.difficultySelector.classList.remove('hidden');
     }
 }
 
@@ -658,7 +896,10 @@ function initializeGame() {
     resetGameState();
     updateUI();
     createCards();
-    startTimer();
+    
+    if (gameState.mode !== 'duo') {
+        startTimer();
+    }
 }
 
 function goToStartScreen() {
@@ -705,6 +946,11 @@ function setDifficulty(difficulty) {
     });
 }
 
+function toggleSound() {
+    const enabled = SoundManager.toggle();
+    elements.soundIcon.textContent = enabled ? '🔊' : '🔇';
+}
+
 let isRestarting = false;
 
 function restartGame() {
@@ -732,7 +978,11 @@ function setupEventListeners() {
         btn.addEventListener('click', () => setDifficulty(btn.dataset.difficulty));
     });
     
-    elements.startBtn.addEventListener('click', startGame);
+    elements.startBtn.addEventListener('click', () => {
+        SoundManager.resume();
+        startGame();
+    });
+    
     elements.showLeaderboardBtn.addEventListener('click', () => showLeaderboard(gameState.mode));
     elements.backBtn.addEventListener('click', goToStartScreen);
     elements.restartBtn.addEventListener('click', restartGame);
@@ -777,6 +1027,25 @@ function setupEventListeners() {
             hideLeaderboard();
         }
     });
+    
+    elements.soundToggle.addEventListener('click', toggleSound);
 }
 
+function initPWA() {
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./service-worker.js')
+                .then((registration) => {
+                    console.log('ServiceWorker registration successful');
+                })
+                .catch((err) => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+        });
+    }
+}
+
+SoundManager.init();
+elements.soundIcon.textContent = SoundManager.enabled ? '🔊' : '🔇';
 setupEventListeners();
+initPWA();
