@@ -185,6 +185,11 @@ function showComboBonus(combo, timeBonus) {
     bonus.classList.add('show');
 }
 
+function hideComboBonus() {
+    elements.comboBonus.classList.remove('show');
+    elements.comboBonus.textContent = '';
+}
+
 function updateMatchedCount(count) {
     elements.matchedCount.textContent = count;
     elements.matchedCount.classList.remove('pulse');
@@ -649,6 +654,7 @@ function initializeGame() {
     stopTimer();
     hideResult();
     hideLevelComplete();
+    hideComboBonus();
     resetGameState();
     updateUI();
     createCards();
