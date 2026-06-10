@@ -12,89 +12,87 @@
             <h1>记忆卡片游戏</h1>
         </header>
 
-        <section class="game-info" aria-label="游戏信息">
-            <div class="info-item">
-                <span class="info-label">倒计时：</span>
-                <span id="timer" class="info-value">60</span>
-                <span class="info-unit">秒</span>
+        <div id="start-screen" class="start-screen">
+            <div class="mode-selector">
+                <h2 class="section-title">选择游戏模式</h2>
+                <div class="mode-buttons">
+                    <button class="mode-btn active" data-mode="classic">
+                        <span class="mode-icon">🎯</span>
+                        <span class="mode-name">经典模式</span>
+                        <span class="mode-desc">选择难度，挑战自我</span>
+                    </button>
+                    <button class="mode-btn" data-mode="level">
+                        <span class="mode-icon">🏆</span>
+                        <span class="mode-name">关卡模式</span>
+                        <span class="mode-desc">逐关递增，突破极限</span>
+                    </button>
+                </div>
             </div>
-            <div class="info-item">
-                <span class="info-label">已配对：</span>
-                <span id="matched-count" class="info-value">0</span>
-                <span class="info-unit">对</span>
-            </div>
-        </section>
 
-        <section class="card-grid" id="card-grid" aria-label="卡片区域">
-            <div class="card" data-card-id="0">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
+            <div id="difficulty-selector" class="difficulty-selector">
+                <h2 class="section-title">选择难度</h2>
+                <div class="difficulty-buttons">
+                    <button class="difficulty-btn active" data-difficulty="easy">
+                        <span class="diff-name">简单</span>
+                        <span class="diff-info">4对卡片 · 90秒</span>
+                    </button>
+                    <button class="difficulty-btn" data-difficulty="medium">
+                        <span class="diff-name">中等</span>
+                        <span class="diff-info">6对卡片 · 60秒</span>
+                    </button>
+                    <button class="difficulty-btn" data-difficulty="hard">
+                        <span class="diff-name">困难</span>
+                        <span class="diff-info">8对卡片 · 45秒</span>
+                    </button>
+                    <button class="difficulty-btn" data-difficulty="expert">
+                        <span class="diff-name">专家</span>
+                        <span class="diff-info">10对卡片 · 30秒</span>
+                    </button>
+                </div>
             </div>
-            <div class="card" data-card-id="1">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
-            </div>
-            <div class="card" data-card-id="2">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
-            </div>
-            <div class="card" data-card-id="3">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
-            </div>
-            <div class="card" data-card-id="4">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
-            </div>
-            <div class="card" data-card-id="5">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
-            </div>
-            <div class="card" data-card-id="6">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
-            </div>
-            <div class="card" data-card-id="7">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
-            </div>
-            <div class="card" data-card-id="8">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
-            </div>
-            <div class="card" data-card-id="9">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
-            </div>
-            <div class="card" data-card-id="10">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
-            </div>
-            <div class="card" data-card-id="11">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
-            </div>
-            <div class="card" data-card-id="12">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
-            </div>
-            <div class="card" data-card-id="13">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
-            </div>
-            <div class="card" data-card-id="14">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
-            </div>
-            <div class="card" data-card-id="15">
-                <div class="card-back"></div>
-                <div class="card-front"></div>
-            </div>
-        </section>
 
-        <section class="controls" aria-label="游戏控制">
-            <button id="restart-btn" class="btn btn-primary">重新开始</button>
-        </section>
+            <div class="action-buttons">
+                <button id="start-btn" class="btn btn-primary btn-large">开始游戏</button>
+                <button id="show-leaderboard-btn" class="btn btn-secondary">🏅 排行榜</button>
+            </div>
+        </div>
+
+        <div id="game-screen" class="game-screen hidden">
+            <section class="game-info" aria-label="游戏信息">
+                <div class="info-item">
+                    <span class="info-label">倒计时</span>
+                    <span id="timer" class="info-value">60</span>
+                    <span class="info-unit">秒</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">已配对</span>
+                    <span id="matched-count" class="info-value">0</span>
+                    <span class="info-unit">对</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">分数</span>
+                    <span id="score" class="info-value">0</span>
+                </div>
+                <div class="info-item combo-item" id="combo-item">
+                    <span class="info-label">连击</span>
+                    <span id="combo" class="info-value combo-value">0</span>
+                </div>
+                <div class="info-item level-item hidden" id="level-item">
+                    <span class="info-label">关卡</span>
+                    <span id="level" class="info-value">1</span>
+                </div>
+            </section>
+
+            <div id="combo-bonus" class="combo-bonus"></div>
+
+            <section class="card-grid" id="card-grid" aria-label="卡片区域">
+            </section>
+
+            <section class="controls" aria-label="游戏控制">
+                <button id="back-btn" class="btn btn-secondary">返回</button>
+                <button id="restart-btn" class="btn btn-primary">重新开始</button>
+            </section>
+        </div>
     </main>
 
     <div id="result-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -103,7 +101,51 @@
             <div id="modal-icon" class="modal-icon"></div>
             <h2 id="modal-title" class="modal-title"></h2>
             <p id="modal-message" class="modal-message"></p>
-            <button id="modal-restart-btn" class="btn btn-primary">再玩一次</button>
+            <div id="modal-stats" class="modal-stats"></div>
+            <div class="modal-actions">
+                <button id="modal-back-btn" class="btn btn-secondary">返回首页</button>
+                <button id="modal-restart-btn" class="btn btn-primary">再玩一次</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="level-complete-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <div id="level-confetti" class="confetti"></div>
+            <div class="modal-icon">🎊</div>
+            <h2 class="modal-title success">关卡完成！</h2>
+            <p class="modal-message" id="level-complete-message"></p>
+            <div class="modal-stats" id="level-stats"></div>
+            <div class="modal-actions">
+                <button id="level-back-btn" class="btn btn-secondary">返回首页</button>
+                <button id="next-level-btn" class="btn btn-primary">下一关</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="leaderboard-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content leaderboard-content">
+            <h2 class="modal-title">🏅 排行榜</h2>
+            <div class="leaderboard-tabs">
+                <button class="leaderboard-tab active" data-mode="classic">经典模式</button>
+                <button class="leaderboard-tab" data-mode="level">关卡模式</button>
+            </div>
+            <div class="leaderboard-list" id="leaderboard-list">
+            </div>
+            <button id="close-leaderboard-btn" class="btn btn-primary">关闭</button>
+        </div>
+    </div>
+
+    <div id="name-input-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-icon">🎮</div>
+            <h2 class="modal-title">恭喜上榜！</h2>
+            <p class="modal-message">请输入你的名字，记录你的成绩</p>
+            <input type="text" id="player-name" class="name-input" maxlength="10" placeholder="输入名字">
+            <div class="modal-actions">
+                <button id="skip-name-btn" class="btn btn-secondary">跳过</button>
+                <button id="save-name-btn" class="btn btn-primary">保存</button>
+            </div>
         </div>
     </div>
 
