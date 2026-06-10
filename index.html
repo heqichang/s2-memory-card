@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>记忆卡片游戏</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="game-container">
+        <header class="game-header">
+            <h1>记忆卡片游戏</h1>
+        </header>
+
+        <section class="game-info" aria-label="游戏信息">
+            <div class="info-item">
+                <span class="info-label">倒计时：</span>
+                <span id="timer" class="info-value">60</span>
+                <span class="info-unit">秒</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">已配对：</span>
+                <span id="matched-count" class="info-value">0</span>
+                <span class="info-unit">对</span>
+            </div>
+        </section>
+
+        <section class="card-grid" id="card-grid" aria-label="卡片区域">
+            <div class="card" data-card-id="0">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+            <div class="card" data-card-id="1">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+            <div class="card" data-card-id="2">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+            <div class="card" data-card-id="3">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+            <div class="card" data-card-id="4">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+            <div class="card" data-card-id="5">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+            <div class="card" data-card-id="6">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+            <div class="card" data-card-id="7">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+            <div class="card" data-card-id="8">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+            <div class="card" data-card-id="9">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+            <div class="card" data-card-id="10">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+            <div class="card" data-card-id="11">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+            <div class="card" data-card-id="12">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+            <div class="card" data-card-id="13">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+            <div class="card" data-card-id="14">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+            <div class="card" data-card-id="15">
+                <div class="card-back"></div>
+                <div class="card-front"></div>
+            </div>
+        </section>
+
+        <section class="controls" aria-label="游戏控制">
+            <button id="restart-btn" class="btn btn-primary">重新开始</button>
+        </section>
+    </main>
+
+    <div id="result-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-content">
+            <div id="confetti-container" class="confetti"></div>
+            <div id="modal-icon" class="modal-icon"></div>
+            <h2 id="modal-title" class="modal-title"></h2>
+            <p id="modal-message" class="modal-message"></p>
+            <button id="modal-restart-btn" class="btn btn-primary">再玩一次</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
